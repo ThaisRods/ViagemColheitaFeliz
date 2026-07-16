@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Planner de Viagem</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --ink:#16283F;
+    --paper:#EEF2EE;
+    --teal:#1D5C63;
+    --teal-dark:#123A3F;
+    --mustard:#E8A33D;
+    --coral:#DD5B4B;
+    --line:#c9d2c9;
+    --card:#ffffff;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      radial-gradient(circle at 1px 1px, rgba(22,40,63,0.06) 1px, transparent 0);
+    background-size: 22px 22px;
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    padding:32px 16px 80px;
+  }
+
+  h1,h2,h3{ font-family:'Fraunces', serif; margin:0; }
+
+  .wrap{ max-width:880px; margin:0 auto; }
+
+  /* ---- Boarding pass header ---- */
+  .pass{
+    background:var(--teal);
+    color:#fff;
+    border-radius:18px;
+    padding:28px 30px;
+    position:relative;
+    overflow:hidden;
+    box-shadow:0 12px 30px rgba(18,58,63,0.25);
+    margin-bottom:36px;
+  }
+  .pass::after{
+    content:"";
+    position:absolute;
+    right:-40px; top:-40px;
+    width:180px; height:180px;
+    border-radius:50%;
+    background:rgba(232,163,61,0.18);
+  }
+  .pass-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    position:relative; z-index:1;
+    flex-wrap:wrap; gap:16px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--mustard);
+    margin-bottom:6px;
+    display:block;
+  }
+  .pass h1{
+    font-size:34px;
+    font-weight:600;
+    line-height:1.1;
+  }
+  .pass-input{
+    background:transparent;
+    border:none;
+    border-bottom:2px dashed rgba(255,255,255,0.4);
+    color:#fff;
+    font-family:'Fraunces', serif;
+    font-size:34px;
+    font-weight:600;
+    width:100%;
+    max-width:420px;
+    padding:2px 0;
+  }
+  .pass-input::placeholder{ color:rgba(255,255,255,0.55); }
+  .pass-input:focus{ outline:none; border-color:var(--mustard); }
+
+  .stub{
+    font-family:'IBM Plex Mono', monospace;
+    text-align:right;
+    font-size:12px;
+    color:rgba(255,255,255,0.75);
+    line-height:1.6;
+  }
+  .stub b{ color:#fff; font-size:22px; display:block; font-weight:600; }
+
+  .perf{
+    border-top:2px dashed rgba(255,255,255,0.35);
+    margin:22px 0 18px;
+    position:relative;
+  }
+  .perf::before, .perf::after{
+    content:"";
+    position:absolute; top:-11px;
+    width:22px; height:22px;
+    background:var(--paper);
+    border-radius:50%;
+  }
+  .perf::before{ left:-42px; }
+  .perf::after{ right:-42px; }
+
+  .pass-meta{
+    display:flex; gap:36px; flex-wrap:wrap;
+    position:relative; z-index:1;
+  }
+  .meta-item .eyebrow{ margin-bottom:4px; }
+  .meta-item .val{ font-family:'IBM Plex Mono', monospace; font-size:20px; font-weight:600; }
+  .meta-item .val.small{ font-size:15px; font-weight:500; opacity:.9; }
+
+  /* ---- Section cards ---- */
+  .card{
+    background:var(--card);
+    border-radius:14px;
+    padding:24px 26px;
+    margin-bottom:22px;
+    box-shadow:0 2px 10px rgba(22,40,63,0.06);
+    border:1px solid var(--line);
+  }
+  .card-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .card-head h2{ font-size:20px; font-weight:600; }
+  .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--teal);
+    background:rgba(29,92,99,0.09);
+    padding:4px 10px;
+    border-radius:20px;
+  }
+
+  /* People */
+  .people-list{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+  .person-chip{
+    display:flex; align-items:center; gap:8px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:8px 8px 8px 16px;
+    font-size:14px;
+    font-weight:500;
+  }
+  .person-chip button{
+    background:var(--coral);
+    color:#fff;
+    border:none;
+    width:20px; height:20px;
+    border-radius:50%;
+    cursor:pointer;
+    font-size:13px;
+    line-height:1;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .empty-note{
+    font-size:14px;
+    color:#8a8f8a;
+    font-style:italic;
+    margin-bottom:16px;
+  }
+
+  .row-add{ display:flex; gap:10px; flex-wrap:wrap; }
+  input[type="text"], input[type="number"]{
+    font-family:'Work Sans', sans-serif;
+    font-size:14px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:#fbfcfb;
+    color:var(--ink);
+  }
+  input:focus{ outline:2px solid var(--mustard); outline-offset:1px; border-color:transparent; }
+  .btn{
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding:10px 18px;
+    border:none;
+    border-radius:8px;
+    background:var(--teal);
+    color:#fff;
+    cursor:pointer;
+    transition:transform .12s ease, background .12s ease;
+  }
+  .btn:hover{ background:var(--teal-dark); }
+  .btn:active{ transform:scale(0.97); }
+  .btn.ghost{
+    background:transparent;
+    color:var(--teal);
+    border:1px solid var(--teal);
+  }
+  .btn.ghost:hover{ background:rgba(29,92,99,0.08); }
+
+  /* Costs table */
+  table{ width:100%; border-collapse:collapse; margin-bottom:16px; }
+  th{
+    text-align:left;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:#7c847c;
+    padding:0 8px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  td{
+    padding:10px 8px;
+    border-bottom:1px solid var(--line);
+    font-size:14px;
+  }
+  td.val, th.val{ text-align:right; font-family:'IBM Plex Mono', monospace; }
+  tr:last-child td{ border-bottom:none; }
+  .del-btn{
+    background:none; border:none; color:var(--coral);
+    cursor:pointer; font-size:16px;
+  }
+
+  .total-row{
+    display:flex; justify-content:space-between;
+    padding:14px 8px 4px;
+    border-top:2px solid var(--ink);
+    margin-top:4px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .total-row .label{ font-weight:600; }
+  .total-row .amount{ font-weight:600; font-size:18px; }
+
+  .split-box{
+    margin-top:18px;
+    background:var(--teal);
+    color:#fff;
+    border-radius:12px;
+    padding:18px 22px;
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:10px;
+  }
+  .split-box .eyebrow{ color:var(--mustard); }
+  .split-box .amount{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:28px;
+    font-weight:600;
+  }
+
+  /* Checklist */
+  .checklist-cols{ display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+  @media (max-width:640px){ .checklist-cols{ grid-template-columns:1fr; } }
+  .checklist-col h3{
+    font-size:15px;
+    font-weight:600;
+    color:var(--teal);
+    margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .checklist-col h3::before{
+    content:"";
+    width:8px; height:8px;
+    background:var(--mustard);
+    border-radius:50%;
+    display:inline-block;
+  }
+  ul.check-items{ list-style:none; margin:0 0 12px; padding:0; }
+  ul.check-items li{
+    display:flex; align-items:center; gap:10px;
+    padding:8px 4px;
+    border-bottom:1px solid var(--line);
+    font-size:14px;
+  }
+  ul.check-items li input[type="checkbox"]{
+    width:18px; height:18px;
+    accent-color:var(--teal);
+    flex-shrink:0;
+  }
+  ul.check-items li span{ flex:1; }
+  ul.check-items li.done span{ text-decoration:line-through; color:#9aa39a; }
+  ul.check-items li .del-btn{ font-size:14px; }
+  .add-item-row{ display:flex; gap:8px; margin-top:4px; }
+  .add-item-row input{ flex:1; }
+
+  footer{
+    text-align:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:#9aa39a;
+    letter-spacing:1px;
+    margin-top:30px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- BOARDING PASS HEADER -->
+  <div class="pass">
+    <div class="pass-top">
+      <div>
+        <span class="eyebrow">Destino</span>
+        <input class="pass-input" id="destino" placeholder="Para onde vamos?" value="">
+      </div>
+      <div class="stub">
+        <span id="stub-people">0 viajantes</span>
+        <b id="stub-total">R$ 0,00</b>
+        <span>custo total</span>
+      </div>
+    </div>
+    <div class="perf"></div>
+    <div class="pass-meta">
+      <div class="meta-item">
+        <span class="eyebrow">Valor por pessoa</span>
+        <span class="val" id="header-per-person">R$ 0,00</span>
+      </div>
+      <div class="meta-item">
+        <span class="eyebrow">Itens de compra</span>
+        <span class="val small"><span id="header-checked">0</span>/<span id="header-total-items">0</span> resolvidos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PESSOAS -->
+  <div class="card">
+    <div class="card-head">
+      <h2>Quem vai</h2>
+      <span class="tag" id="tag-people">0 pessoas</span>
+    </div>
+    <div class="people-list" id="people-list"></div>
+    <p class="empty-note" id="people-empty">Ninguém adicionado ainda — chame a galera.</p>
+    <div class="row-add">
+      <input type="text" id="person-input" placeholder="Nome da pessoa" style="min-width:220px;">
+      <button class="btn" onclick="addPerson()">Adicionar</button>
+    </div>
+  </div>
+
+  <!-- CUSTOS -->
+  <div class="card">
+    <div class="card-head">
+      <h2>Custos do local</h2>
+      <span class="tag">Rateio automático</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Descrição</th><th class="val">Valor (R$)</th><th></th></tr>
+      </thead>
+      <tbody id="cost-body"></tbody>
+    </table>
+    <div class="row-add">
+      <input type="text" id="cost-desc" placeholder="Ex: aluguel da casa" style="min-width:220px;">
+      <input type="number" id="cost-value" placeholder="Valor" min="0" step="0.01" style="width:120px;">
+      <button class="btn" onclick="addCost()">Adicionar custo</button>
+    </div>
+    <div class="total-row">
+      <span class="label">Total geral</span>
+      <span class="amount" id="cost-total">R$ 0,00</span>
+    </div>
+    <div class="split-box">
+      <div>
+        <span class="eyebrow">Valor por pessoa</span>
+      </div>
+      <div class="amount" id="per-person">R$ 0,00</div>
+    </div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="card">
+    <div class="card-head">
+      <h2>O que precisa comprar</h2>
+      <span class="tag" id="tag-items">0 itens</span>
+    </div>
+    <div class="checklist-cols">
+      <div class="checklist-col">
+        <h3>Alimentação</h3>
+        <ul class="check-items" id="list-food"></ul>
+        <div class="add-item-row">
+          <input type="text" id="input-food" placeholder="Ex: carvão para churrasco">
+          <button class="btn ghost" onclick="addItem('food')">+</button>
+        </div>
+      </div>
+      <div class="checklist-col">
+        <h3>Higiene</h3>
+        <ul class="check-items" id="list-hygiene"></ul>
+        <div class="add-item-row">
+          <input type="text" id="input-hygiene" placeholder="Ex: papel higiênico">
+          <button class="btn ghost" onclick="addItem('hygiene')">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>PLANNER DE VIAGEM — feito para quem vai com a mão na roda</footer>
+</div>
+
+<script>
+  // ---------- State (in-memory only) ----------
+  let people = [];
+  let costs = [];
+  let items = {
+    food: ["Água", "Carvão", "Carne", "Bebidas"],
+    hygiene: ["Papel higiênico", "Sabonete", "Repelente"]
+  };
+  let checked = {}; // key: "food-0" etc -> bool
+
+  const fmt = (n) => n.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+
+  // ---------- People ----------
+  function addPerson(){
+    const input = document.getElementById('person-input');
+    const name = input.value.trim();
+    if(!name) return;
+    people.push(name);
+    input.value = '';
+    renderPeople();
+    renderCosts();
+  }
+  function removePerson(i){
+    people.splice(i,1);
+    renderPeople();
+    renderCosts();
+  }
+  function renderPeople(){
+    const list = document.getElementById('people-list');
+    const empty = document.getElementById('people-empty');
+    list.innerHTML = '';
+    empty.style.display = people.length ? 'none' : 'block';
+    people.forEach((p,i)=>{
+      const chip = document.createElement('div');
+      chip.className = 'person-chip';
+      chip.innerHTML = `<span>${escapeHtml(p)}</span>`;
+      const btn = document.createElement('button');
+      btn.textContent = '×';
+      btn.onclick = ()=>removePerson(i);
+      chip.appendChild(btn);
+      list.appendChild(chip);
+    });
+    document.getElementById('tag-people').textContent = people.length + (people.length===1 ? ' pessoa' : ' pessoas');
+    document.getElementById('stub-people').textContent = people.length + (people.length===1 ? ' viajante' : ' viajantes');
+  }
+
+  // ---------- Costs ----------
+  function addCost(){
+    const descInput = document.getElementById('cost-desc');
+    const valInput = document.getElementById('cost-value');
+    const desc = descInput.value.trim();
+    const val = parseFloat(valInput.value);
+    if(!desc || isNaN(val) || val < 0) return;
+    costs.push({desc, val});
+    descInput.value = '';
+    valInput.value = '';
+    renderCosts();
+  }
+  function removeCost(i){
+    costs.splice(i,1);
+    renderCosts();
+  }
+  function renderCosts(){
+    const body = document.getElementById('cost-body');
+    body.innerHTML = '';
+    let total = 0;
+    costs.forEach((c,i)=>{
+      total += c.val;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${escapeHtml(c.desc)}</td><td class="val">${fmt(c.val)}</td>
+        <td><button class="del-btn" onclick="removeCost(${i})">✕</button></td>`;
+      body.appendChild(tr);
+    });
+    document.getElementById('cost-total').textContent = fmt(total);
+    const perPerson = people.length ? total / people.length : 0;
+    document.getElementById('per-person').textContent = fmt(perPerson);
+    document.getElementById('header-per-person').textContent = fmt(perPerson);
+    document.getElementById('stub-total').textContent = fmt(total);
+  }
+
+  // ---------- Checklist ----------
+  function addItem(cat){
+    const input = document.getElementById(cat === 'food' ? 'input-food' : 'input-hygiene');
+    const val = input.value.trim();
+    if(!val) return;
+    items[cat].push(val);
+    input.value = '';
+    renderItems();
+  }
+  function removeItem(cat, i){
+    items[cat].splice(i,1);
+    delete checked[cat+'-'+i];
+    renderItems();
+  }
+  function toggleItem(cat, i){
+    const key = cat+'-'+i;
+    checked[key] = !checked[key];
+    renderItems();
+  }
+  function renderItems(){
+    ['food','hygiene'].forEach(cat=>{
+      const ul = document.getElementById(cat === 'food' ? 'list-food' : 'list-hygiene');
+      ul.innerHTML = '';
+      items[cat].forEach((it,i)=>{
+        const key = cat+'-'+i;
+        const li = document.createElement('li');
+        if(checked[key]) li.classList.add('done');
+        li.innerHTML = `<input type="checkbox" ${checked[key] ? 'checked' : ''} onchange="toggleItem('${cat}',${i})">
+          <span>${escapeHtml(it)}</span>
+          <button class="del-btn" onclick="removeItem('${cat}',${i})">✕</button>`;
+        ul.appendChild(li);
+      });
+    });
+    const totalItems = items.food.length + items.hygiene.length;
+    const totalChecked = Object.values(checked).filter(Boolean).length;
+    document.getElementById('tag-items').textContent = totalItems + (totalItems===1 ? ' item' : ' itens');
+    document.getElementById('header-total-items').textContent = totalItems;
+    document.getElementById('header-checked').textContent = totalChecked;
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Enter key support
+  document.getElementById('person-input').addEventListener('keypress', e=>{ if(e.key==='Enter') addPerson(); });
+  document.getElementById('cost-desc').addEventListener('keypress', e=>{ if(e.key==='Enter') document.getElementById('cost-value').focus(); });
+  document.getElementById('cost-value').addEventListener('keypress', e=>{ if(e.key==='Enter') addCost(); });
+  document.getElementById('input-food').addEventListener('keypress', e=>{ if(e.key==='Enter') addItem('food'); });
+  document.getElementById('input-hygiene').addEventListener('keypress', e=>{ if(e.key==='Enter') addItem('hygiene'); });
+
+  // Initial render
+  renderPeople();
+  renderCosts();
+  renderItems();
+</script>
+</body>
+</html>
